@@ -45,10 +45,10 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
 
   const fetchTransactions = useCallback(async (query?: string) => {
-    let response = await api.get('/findAll')
+    let response = await api.get('transactions/findAll')
 
     if (query)
-      response = await api.post('/find', {
+      response = await api.post('/findAll', {
         query,
       })
 
