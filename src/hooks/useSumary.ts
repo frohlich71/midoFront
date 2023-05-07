@@ -7,15 +7,17 @@ export function useSummary() {
     return context.transactions
   })
 
+  //TODO: TRAZER O SALDO DO BANCO 
+
   const summary = useMemo(() => {
     return transactions.reduce(
       (acc, transaction) => {
-        if (transaction.type === 'income') {
-          acc.income += transaction.price
-          acc.total += transaction.price
+        if (transaction.inOutFlag === 'income') {
+          acc.income += transaction.vlMov
+          acc.total += transaction.vlMov
         } else {
-          acc.outcome += transaction.price
-          acc.total -= transaction.price
+          acc.outcome += transaction.vlMov
+          acc.total -= transaction.vlMov
         }
         return acc
       },

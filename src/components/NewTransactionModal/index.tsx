@@ -14,10 +14,9 @@ import { TransactionContext } from '../../contexts/TransactionContext'
 import { useContextSelector } from 'use-context-selector'
 
 const newTransactionFormSchema = z.object({
-  description: z.string(),
-  price: z.number(),
-  category: z.string(),
-  type: z.enum(['income', 'outcome']),
+  numeroConta: z.number(),
+  agencia: z.string(),
+  value: z.number(),
 })
 
 type NewTransactionFormInputs = z.infer<typeof newTransactionFormSchema>
@@ -32,24 +31,24 @@ export function NewTransactionModal() {
   const {
     register,
     handleSubmit,
-    control,
     formState: { isSubmitting },
     reset,
   } = useForm<NewTransactionFormInputs>({
     resolver: zodResolver(newTransactionFormSchema),
     defaultValues: {
-      type: 'income',
+      agencia: '001',
     },
   })
 
   async function handleCreateNewTransaction(data: NewTransactionFormInputs) {
-    const { description, price, category, type } = data
+    const { numeroConta, value } = data
 
     await createTransaction({
-      description,
-      price,
-      category,
-      type,
+      numeroConta,
+      inOutFlag: 'outcome',
+      tpMov: 'Envio de TED',
+      value,
+      agencia: '001'
     })
 
     reset()
@@ -67,22 +66,22 @@ export function NewTransactionModal() {
 
         <form onSubmit={handleSubmit(handleCreateNewTransaction)}>
           <input
-            type="text"
+            type="number"
             placeholder="Numero da conta"
             required
-            {...register('description')}
+            {...register('numeroConta', {valueAsNumber: true})}
           />
            <input
             type="text"
             placeholder="Agência"
-            required
-            {...register('category')}
+            disabled
+            {...register('agencia')}
           />
           <input
             type="number"
             placeholder="Valor"
             required
-            {...register('price', { valueAsNumber: true })}
+            {...register('value', { valueAsNumber: true })}
           />
           <button type="submit" disabled={isSubmitting}>
             Enviar

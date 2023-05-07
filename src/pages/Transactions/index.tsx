@@ -14,6 +14,8 @@ export function Transactions() {
   const transactions = useContextSelector(TransactionContext, (context) => {
     return context.transactions
   })
+  console.log(transactions)
+
   return (
     <div>
       <Header />
@@ -27,21 +29,21 @@ export function Transactions() {
               return (
                 <tr
                   key={
-                    transaction.id !== undefined
+                    transaction?.id !== undefined
                       ? transaction.id
                       : transactions.length + 1
                   }
                 >
-                  <td width="50%">{transaction.description}</td>
+                  <td width="50%">{transaction?.tpMov}</td>
                   <td>
-                    <PriceHighlight variant={transaction.type}>
-                      {transaction.type === 'outcome' && '- '}
-                      {priceFormatter.format(transaction.value)}
+                    <PriceHighlight variant={transaction?.inOutFlag}>
+                      {transaction?.inOutFlag === 'outcome' && '- '}
+                      {priceFormatter.format(transaction?.vlMov)}
                     </PriceHighlight>
                   </td>
-                  <td>{transaction.category}</td>
+                  <td>{transaction?.cliente.numeroConta}</td>
                   <td>
-                    {dateFormatter.format(new Date(transaction.createdAt))}
+                    {dateFormatter.format(new Date(transaction?.dtMov))}
                   </td>
                 </tr>
               )

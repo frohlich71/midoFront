@@ -30,7 +30,6 @@ export function PixModal() {
   const {
     register,
     handleSubmit,
-    control,
     formState: { isSubmitting },
     reset,
   } = useForm<CreatePixInput>({
@@ -42,7 +41,9 @@ export function PixModal() {
 
     await createPix({
       chavePix,
-      value
+      value,
+      tpMov: 'Envio de PIX',
+      inOutFlag: 'outcome'
     })
 
     reset()
