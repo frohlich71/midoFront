@@ -50,6 +50,17 @@ interface WithdralInput {
   value:number
 }
 
+interface CreateUserInput {
+  nome: string,
+  cpf: string,
+  agencia: string,
+  email: string,
+  dtNascimento: Date,
+  telefone: number,
+  password: string,
+  rg: string
+}
+
 interface TransactionContextType {
   transactions: Transaction[]
   saldo: number
@@ -58,6 +69,7 @@ interface TransactionContextType {
   createPix: (data: CreatePixInput) => Promise<void>
   withdraw: (data: WithdralInput) => Promise<void>
   getSaldo: () => Promise<void>
+  createUser: (data: CreateUserInput) => Promise<void>
 }
 
 interface TransactionProviderProps {
@@ -109,6 +121,31 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
       // setTransactions((state) => [...state, response.data])
     },
     [],
+  )
+
+  const createUser = useCallback(
+    async (data: CreateUserInput) => {
+      const { nome, cpf, email, dtNascimento, telefone, password, rg  } = data
+      
+      const response = await api.post('transactions/ted', {
+        nome,
+        cpf,
+        email,
+        dtNascimento,
+        telefone,
+        password,
+        rg
+      }, {
+        auth: {
+          username: '502.939.249-60',
+          password: '123'
+        }
+      })
+
+      // setTransactions((state) => [...state, response.data])
+    },
+    [],
+
   )
 
   const withdraw = useCallback(
@@ -163,7 +200,7 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
         }
       })
 
-      setSaldo(response.data.saldo)
+      setSaldo(response.data)
     },
     [],
   )
@@ -179,6 +216,7 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
         transactions,
         fetchTransactions,
         createTransaction,
+        createUser,
         createPix,
         withdraw,
         saldo,

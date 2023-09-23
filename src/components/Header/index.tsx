@@ -10,7 +10,7 @@ export function Header() {
   return (
     <HeaderContainer>
       <HeaderContent>
-        <img src={logoImg}></img>
+        {/* <img src={logoImg}></img> */}
         <ButtonsContainer >
           <Dialog.Root>
             <Dialog.Trigger asChild>
