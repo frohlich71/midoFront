@@ -7,10 +7,10 @@ export function Router() {
   return (
     <Routes>
       <Route>
-        <Route path='/cadastro' element={<Cadastro />} />
+        <Route path='/' element={<Cadastro />} />
       </Route>
       <Route>
-        <Route path="/" element={<Transactions />} />
+        <Route path="/home" element={<Transactions />} />
       </Route>
     </Routes>
   )

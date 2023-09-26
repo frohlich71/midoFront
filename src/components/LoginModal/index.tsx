@@ -12,20 +12,23 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import { TransactionContext } from '../../contexts/TransactionContext'
 import { useContextSelector } from 'use-context-selector'
+import { useNavigate } from 'react-router-dom'
 
-const newTransactionFormSchema = z.object({
+const loginFormSchema = z.object({
   numeroConta: z.number(),
   agencia: z.string(),
-  value: z.number(),
+  password: z.string(),
 })
 
-type NewTransactionFormInputs = z.infer<typeof newTransactionFormSchema>
+type LoginFormInputs = z.infer<typeof loginFormSchema>
 
 export function LoginModal() {
-  const createTransaction = useContextSelector(
+
+
+  const doLogin = useContextSelector(
     TransactionContext,
     (context) => {
-      return context.createTransaction
+      return context.login
     },
   )
   const {
@@ -33,25 +36,23 @@ export function LoginModal() {
     handleSubmit,
     formState: { isSubmitting },
     reset,
-  } = useForm<NewTransactionFormInputs>({
-    resolver: zodResolver(newTransactionFormSchema),
+  } = useForm<LoginFormInputs>({
+    resolver: zodResolver(loginFormSchema),
     defaultValues: {
       agencia: '001',
     },
   })
 
-  async function handleCreateNewTransaction(data: NewTransactionFormInputs) {
-    const { numeroConta, value } = data
-
-    await createTransaction({
+  async function login(data: LoginFormInputs) {
+    const { numeroConta, password } = data
+    
+    await doLogin({
       numeroConta,
-      inOutFlag: 'outcome',
-      tpMov: 'Envio de TED',
-      value,
+      password,
       agencia: '001'
     })
-
-    reset()
+    
+    
   }
 
   return (
@@ -64,7 +65,7 @@ export function LoginModal() {
           <X size={24} />
         </CloseButton>
 
-        <form onSubmit={handleSubmit(handleCreateNewTransaction)}>
+        <form onSubmit={handleSubmit(login)}>
           <input
             type="number"
             placeholder="Numero da conta"
@@ -81,7 +82,7 @@ export function LoginModal() {
             type="password"
             placeholder="Senha"
             required
-            {...register('value', { valueAsNumber: false })}
+            {...register('password', { valueAsNumber: false })}
           />
           <button type="submit" disabled={isSubmitting}>
             Entrar

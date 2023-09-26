@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useState, useCallback } from 'react'
 import { createContext } from 'use-context-selector'
 import { api } from '../lib/axios'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 
 interface Cliente {
   id: string
@@ -40,6 +41,13 @@ interface CreateTransactionInput {
   inOutFlag: 'income' | 'outcome'
 }
 
+interface LoginInput {
+
+  numeroConta: number
+  password: string
+  agencia: string
+}
+
 interface CreatePixInput {
   chavePix: string
   value: number
@@ -56,7 +64,7 @@ interface CreateUserInput {
   agencia: string,
   email: string,
   dtNascimento: Date,
-  telefone: number,
+  telefone: string,
   password: string,
   rg: string
 }
@@ -70,6 +78,7 @@ interface TransactionContextType {
   withdraw: (data: WithdralInput) => Promise<void>
   getSaldo: () => Promise<void>
   createUser: (data: CreateUserInput) => Promise<void>
+  login: (data: LoginInput) => Promise<void>
 }
 
 interface TransactionProviderProps {
@@ -81,6 +90,7 @@ export const TransactionContext = createContext({} as TransactionContextType)
 export function TransactionsProvider({ children }: TransactionProviderProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [saldo, setSaldo] = useState<number>(0)
+  const navigate = useNavigate()
 
   const fetchTransactions = useCallback(async (query?: string) => {    
 
@@ -100,6 +110,35 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
   }, [])
 
   
+
+  const login = useCallback(
+    async (data: LoginInput) => {
+      const { numeroConta, password, agencia } = data
+
+      const response = await api.post('/login', {
+        numeroConta,
+        password,
+        agencia
+    
+      }).catch(function (error) {
+        console.log(error.response)
+        alert("Algo deu errado")
+      })
+
+      if (response !== undefined) {
+        localStorage.clear()
+
+        localStorage.setItem('user', JSON.stringify(response))
+
+        navigate("/home")
+      }
+      
+    },
+    []
+
+  )
+
+
 
   const createTransaction = useCallback(
     async (data: CreateTransactionInput) => {
@@ -125,24 +164,19 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
 
   const createUser = useCallback(
     async (data: CreateUserInput) => {
-      const { nome, cpf, email, dtNascimento, telefone, password, rg  } = data
+      const { nome, cpf, email, dtNascimento, telefone, password, rg, agencia  } = data
       
-      const response = await api.post('transactions/ted', {
+      const response = await api.post('cliente/create', {
         nome,
         cpf,
         email,
         dtNascimento,
         telefone,
         password,
+        agencia,
         rg
-      }, {
-        auth: {
-          username: '502.939.249-60',
-          password: '123'
-        }
       })
 
-      // setTransactions((state) => [...state, response.data])
     },
     [],
 
@@ -220,7 +254,8 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
         createPix,
         withdraw,
         saldo,
-        getSaldo
+        getSaldo,
+        login
       }}
     >
       {children}

@@ -19,7 +19,7 @@ const newClienteFormSchema = z.object({
   agencia: z.string(),
   email: z.string(),
   dtNascimento: z.date(),
-  telefone: z.number(),
+  telefone: z.string(),
   password: z.string(),
   rg: z.string()
 })
@@ -59,7 +59,9 @@ export function CadastroModal() {
       rg
     })
 
-    reset()
+
+    alert("Cliente criado com sucesso.")
+    close()
   }
 
   return (
@@ -82,32 +84,27 @@ export function CadastroModal() {
            <input
             type="text"
             placeholder="CPF"
-            disabled
             {...register('cpf')}
           />
           <input
             type="text"
             placeholder="Email"
-            disabled
             {...register('email')}
           />
           <input
             type="date"
             placeholder="Data de nascimento"
-            disabled
-            {...register('dtNascimento')}
+            {...register('dtNascimento', {valueAsDate: true})}
           />
           <input
-            type="number"
+            type="text"
             placeholder="Telefone"
-            disabled
             {...register('telefone')}
           />
 
           <input
             type="text"
             placeholder="RG"
-            disabled
             {...register('rg')}
           />
           <input
