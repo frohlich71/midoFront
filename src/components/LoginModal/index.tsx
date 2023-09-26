@@ -24,7 +24,7 @@ type LoginFormInputs = z.infer<typeof loginFormSchema>
 
 export function LoginModal() {
 
-
+  const navigate = useNavigate()
   const doLogin = useContextSelector(
     TransactionContext,
     (context) => {
@@ -51,7 +51,8 @@ export function LoginModal() {
       password,
       agencia: '001'
     })
-    
+
+    navigate("/home")
     
   }
 

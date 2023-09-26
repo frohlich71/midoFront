@@ -10,7 +10,7 @@ interface Cliente {
   cpf: string,
   email: string,
   numeroConta: number,
-  dtNascimento: Date,
+  dtNascimento: String,
   telefone: number,
   chavePix: string,
   password: string,
@@ -63,11 +63,11 @@ interface Authorities {
 }
 
 interface ResponseAuth {
-  authenticated: true | any
-  authorities: Authorities[] | any
-  credentials: string | any
-  name: string | any
-  principal: string | any
+  authenticated: boolean 
+  authorities: Authorities[] 
+  credentials: string 
+  name: string
+  principal: string
 }
 
 interface CreateUserInput {
@@ -84,6 +84,8 @@ interface CreateUserInput {
 interface TransactionContextType {
   transactions: Transaction[]
   saldo: number
+  cliente: Cliente
+  auth: ResponseAuth
   fetchTransactions: (query?: string) => Promise<void>
   createTransaction: (data: CreateTransactionInput) => Promise<void>
   createPix: (data: CreatePixInput) => Promise<void>
@@ -102,22 +104,46 @@ export const TransactionContext = createContext({} as TransactionContextType)
 export function TransactionsProvider({ children }: TransactionProviderProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [saldo, setSaldo] = useState<number>(0)
-  const [cliente, setCliente] = useState<Cliente>()
-  const [auth, setAuth] = useState<ResponseAuth>()
-  const navigate = useNavigate()
+  const [cliente, setCliente] = useState<Cliente>({
+    chavePix: "",
+    cpf: "",
+    dtNascimento: "",
+    email: "",
+    id: "",
+    nome: "",
+    numeroConta: NaN,
+    password: "",
+    rg: "",
+    telefone: NaN
+
+  })
+  const [auth, setAuth] = useState<ResponseAuth>({
+    authorities: [{
+      authority: ""
+    }],
+    credentials: "",
+    name: "",
+    principal: "",
+    authenticated: false
+  })
 
   const fetchTransactions = useCallback(async (query?: string) => {  
-    if (cliente !== undefined) {
+    if (JSON.parse(localStorage.getItem("auth")!).authenticated) {
       let response = await api.get('transactions/findAll', {
         auth: {
-          username: auth?.name!,
-          password: auth?.credentials!
+          username: JSON.parse(localStorage.getItem("auth")!).name,
+          password: JSON.parse(localStorage.getItem("auth")!).credentials
         }
       })
   
-      if (query)
+      if (query && JSON.parse(localStorage.getItem("auth")!).authenticated)
         response = await api.post('transactions/findAll', {
           query,
+        }, {
+          auth: {
+            username: JSON.parse(localStorage.getItem("auth")!).name,
+            password: JSON.parse(localStorage.getItem("auth")!).credentials
+          }
         })
   
       setTransactions(response.data)
@@ -127,15 +153,28 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
 
   const fetchTransactionsAtLogin = async function() {
 
-    console.log()
     let response = await api.get('transactions/findAll', {
       auth: {
-        username: JSON.parse(localStorage.getItem("user")!).name,
-        password:JSON.parse(localStorage.getItem("user")!).credentials
+        username: JSON.parse(localStorage.getItem("auth")!).name,
+        password: JSON.parse(localStorage.getItem("auth")!).credentials
       }
     })
     
+
+    
     setTransactions(response.data)
+
+  }
+
+  const getSaldoAtLogin = async function () {
+    const response = await api.get('saldo/find', {
+      auth: {
+        username: JSON.parse(localStorage.getItem("auth")!).name,
+        password: JSON.parse(localStorage.getItem("auth")!).credentials
+      }
+    })
+
+    setSaldo(response.data)
 
   }
 
@@ -151,12 +190,13 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
         agencia
       }, {
         auth: {
-          username: auth?.name ? auth.name : "",
-          password: auth?.credentials ? auth.credentials : ""
+          username: JSON.parse(localStorage.getItem("auth")!).name,
+          password: JSON.parse(localStorage.getItem("auth")!).credentials
         }
       })
 
-      // setTransactions((state) => [...state, response.data])
+      fetchTransactions()
+      getSaldo()
     },
     [],
   )
@@ -164,7 +204,6 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
   const createUser = useCallback(
     async (data: CreateUserInput) => {
       const { nome, cpf, email, dtNascimento, telefone, password, rg, agencia  } = data
-      if (cliente !== undefined) {}
       const response = await api.post('cliente/create', {
         nome,
         cpf,
@@ -191,12 +230,13 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
         tpMov
       }, {
         auth: {
-          username: auth?.name ? auth.name : "",
-          password: auth?.credentials ? auth.credentials : ""
+          username: JSON.parse(localStorage.getItem("auth")!).name,
+          password: JSON.parse(localStorage.getItem("auth")!).credentials
         }
       })
 
-      // setTransactions((state) => [...state, response.data])
+      fetchTransactions()
+      getSaldo()
     },
     [],
   )
@@ -213,12 +253,13 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
     
       }, {
         auth: {
-          username: auth?.name ? auth.name : "",
-          password: auth?.credentials ? auth.credentials : ""
+          username: JSON.parse(localStorage.getItem("auth")!).name,
+          password: JSON.parse(localStorage.getItem("auth")!).credentials
         }
       })
 
-      // setTransactions((state) => [...state, response.data])
+      fetchTransactions()
+      getSaldo()
     },
     [],
   )
@@ -226,13 +267,13 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
   const getSaldo = useCallback(
     
     async () => {
-      if (cliente !== undefined) {
-        const response = await api.get('saldo/', {
+      if (JSON.parse(localStorage.getItem("auth")!).authenticated) {
+        const response = await api.get('saldo/find', {
           auth: {
-            username: auth?.name!,
-            password: auth?.credentials!
+            username: JSON.parse(localStorage.getItem("auth")!).name,
+            password: JSON.parse(localStorage.getItem("auth")!).credentials
           }
-        })
+    })
   
         setSaldo(response.data)
       }
@@ -256,21 +297,46 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
         alert("Algo deu errado")
       })
 
-      if (response !== undefined) {
-        localStorage.clear()
 
-        localStorage.setItem('user', JSON.stringify(response.data.authentication))
+        localStorage.setItem('auth', JSON.stringify(response?.data.authentication))
+        localStorage.setItem('cliente', JSON.stringify(response?.data.authentication))
+
+
+        setCliente({
+            chavePix: response?.data.cliente.chavePix,
+            cpf: response?.data.cliente.cpf,
+            dtNascimento: response?.data.cliente.dtNascimento,
+            email: response?.data.cliente.email,
+            id: response?.data.cliente.id,
+            nome: response?.data.cliente.nome,
+            numeroConta: response?.data.cliente.numeroConta,
+            password: response?.data.cliente.password,
+            rg: response?.data.cliente.rg,
+            telefone: response?.data.cliente.telefone
+        
+        })
+
+        setAuth({
+          authenticated: response?.data.authentication.authenticated,
+          authorities: response?.data.authentication.authorities,
+          credentials: response?.data.authentication.credentials,
+          name: response?.data.authentication.name,
+          principal: response?.data.authentication.principal
+        })
+
 
         fetchTransactionsAtLogin()
-
-        navigate("/home")
-      }
+        getSaldoAtLogin()
+        
       
     },
-    []
+    [],
   )
 
-
+  useEffect(() => {
+    fetchTransactions(),
+    getSaldo()
+  }, [fetchTransactions, getSaldo])
 
   return (
     <TransactionContext.Provider
@@ -283,7 +349,9 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
         withdraw,
         saldo,
         getSaldo,
-        login
+        login,
+        auth,
+        cliente
       }}
     >
       {children}
