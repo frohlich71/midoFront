@@ -28,7 +28,7 @@ export function LoginModal() {
   const doLogin = useContextSelector(
     TransactionContext,
     (context) => {
-      return context.login
+      return {login: context.login, getSaldo: context.getSaldo, fetchTransactions: context.fetchTransactions}
     },
   )
   const {
@@ -46,7 +46,7 @@ export function LoginModal() {
   async function login(data: LoginFormInputs) {
     const { numeroConta, password } = data
     
-    await doLogin({
+    await doLogin.login({
       numeroConta,
       password,
       agencia: '001'
@@ -54,6 +54,7 @@ export function LoginModal() {
     
     
   }
+
 
   return (
     <Dialog.Portal>

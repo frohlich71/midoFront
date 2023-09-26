@@ -19,7 +19,7 @@ export const NewTransactionButton = styled.button`
   }
 `
 
-export const Body = styled.body`
+export const Body = styled.div`
 	display: flex;
 	justify-content: center;
 	align-items: center;

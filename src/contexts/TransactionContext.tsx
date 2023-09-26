@@ -58,6 +58,18 @@ interface WithdralInput {
   value:number
 }
 
+interface Authorities {
+  authority: string
+}
+
+interface ResponseAuth {
+  authenticated: true | any
+  authorities: Authorities[] | any
+  credentials: string | any
+  name: string | any
+  principal: string | any
+}
+
 interface CreateUserInput {
   nome: string,
   cpf: string,
@@ -90,55 +102,42 @@ export const TransactionContext = createContext({} as TransactionContextType)
 export function TransactionsProvider({ children }: TransactionProviderProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [saldo, setSaldo] = useState<number>(0)
+  const [cliente, setCliente] = useState<Cliente>()
+  const [auth, setAuth] = useState<ResponseAuth>()
   const navigate = useNavigate()
 
-  const fetchTransactions = useCallback(async (query?: string) => {    
-
-    let response = await api.get('transactions/findAll', {
-      auth: {
-        username: '502.939.249-60',
-        password: '123'
-      }
-    })
-
-    if (query)
-      response = await api.post('transactions/findAll', {
-        query,
+  const fetchTransactions = useCallback(async (query?: string) => {  
+    if (cliente !== undefined) {
+      let response = await api.get('transactions/findAll', {
+        auth: {
+          username: auth?.name!,
+          password: auth?.credentials!
+        }
       })
-
-    setTransactions(response.data)
+  
+      if (query)
+        response = await api.post('transactions/findAll', {
+          query,
+        })
+  
+      setTransactions(response.data)
+    }
+    
   }, [])
 
-  
+  const fetchTransactionsAtLogin = async function() {
 
-  const login = useCallback(
-    async (data: LoginInput) => {
-      const { numeroConta, password, agencia } = data
-
-      const response = await api.post('/login', {
-        numeroConta,
-        password,
-        agencia
-    
-      }).catch(function (error) {
-        console.log(error.response)
-        alert("Algo deu errado")
-      })
-
-      if (response !== undefined) {
-        localStorage.clear()
-
-        localStorage.setItem('user', JSON.stringify(response))
-
-        navigate("/home")
+    console.log()
+    let response = await api.get('transactions/findAll', {
+      auth: {
+        username: JSON.parse(localStorage.getItem("user")!).name,
+        password:JSON.parse(localStorage.getItem("user")!).credentials
       }
-      
-    },
-    []
+    })
+    
+    setTransactions(response.data)
 
-  )
-
-
+  }
 
   const createTransaction = useCallback(
     async (data: CreateTransactionInput) => {
@@ -152,8 +151,8 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
         agencia
       }, {
         auth: {
-          username: '502.939.249-60',
-          password: '123'
+          username: auth?.name ? auth.name : "",
+          password: auth?.credentials ? auth.credentials : ""
         }
       })
 
@@ -165,7 +164,7 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
   const createUser = useCallback(
     async (data: CreateUserInput) => {
       const { nome, cpf, email, dtNascimento, telefone, password, rg, agencia  } = data
-      
+      if (cliente !== undefined) {}
       const response = await api.post('cliente/create', {
         nome,
         cpf,
@@ -192,8 +191,8 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
         tpMov
       }, {
         auth: {
-          username: '502.939.249-60',
-          password: '123'
+          username: auth?.name ? auth.name : "",
+          password: auth?.credentials ? auth.credentials : ""
         }
       })
 
@@ -214,8 +213,8 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
     
       }, {
         auth: {
-          username: '502.939.249-60',
-          password: '123'
+          username: auth?.name ? auth.name : "",
+          password: auth?.credentials ? auth.credentials : ""
         }
       })
 
@@ -225,24 +224,53 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
   )
 
   const getSaldo = useCallback(
+    
     async () => {
-
-      const response = await api.get('saldo/', {
-        auth: {
-          username: '502.939.249-60',
-          password: '123'
-        }
-      })
-
-      setSaldo(response.data)
+      if (cliente !== undefined) {
+        const response = await api.get('saldo/', {
+          auth: {
+            username: auth?.name!,
+            password: auth?.credentials!
+          }
+        })
+  
+        setSaldo(response.data)
+      }
+      
     },
     [],
   )
 
-  useEffect(() => {
-    fetchTransactions(),
-    getSaldo()
-  }, [fetchTransactions, getSaldo])
+
+  const login = useCallback(
+    async (data: LoginInput) => {
+      const { numeroConta, password, agencia } = data
+
+      const response = await api.post('/login', {
+        numeroConta,
+        password,
+        agencia
+    
+      }).catch(function (error) {
+        console.log(error.response)
+        alert("Algo deu errado")
+      })
+
+      if (response !== undefined) {
+        localStorage.clear()
+
+        localStorage.setItem('user', JSON.stringify(response.data.authentication))
+
+        fetchTransactionsAtLogin()
+
+        navigate("/home")
+      }
+      
+    },
+    []
+  )
+
+
 
   return (
     <TransactionContext.Provider

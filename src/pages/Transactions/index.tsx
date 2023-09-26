@@ -9,12 +9,12 @@ import {
   TransactionsContainer,
   TransactionsTable,
 } from './styles'
+import { useEffect } from 'react'
 
 export function Transactions() {
   const transactions = useContextSelector(TransactionContext, (context) => {
     return context.transactions
   })
-  console.log(transactions)
 
   return (
     <div>

@@ -21,6 +21,5 @@ export function Cadastro () {
             <LoginModal />
           </Dialog.Root>
     </Body>
-
   )
 }
