@@ -46,13 +46,19 @@ export function LoginModal() {
   async function login(data: LoginFormInputs) {
     const { numeroConta, password } = data
     
-    await doLogin.login({
+    const response = await doLogin.login({
       numeroConta,
       password,
       agencia: '001'
     })
 
-    navigate("/home")
+    if (response?.response?.status === 401) {
+      window.alert("Algo deu errado.")
+    } else {
+      navigate("/home")
+    }
+
+    
     
   }
 

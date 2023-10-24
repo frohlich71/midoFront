@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState, useCallback } from 'react'
 import { createContext } from 'use-context-selector'
 import { api } from '../lib/axios'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { useNavigate } from 'react-router-dom'
 
 interface Cliente {
@@ -48,6 +48,10 @@ interface LoginInput {
   agencia: string
 }
 
+interface CreatePixKeyInput {
+  chavePix: string
+}
+
 interface CreatePixInput {
   chavePix: string
   value: number
@@ -87,12 +91,13 @@ interface TransactionContextType {
   cliente: Cliente
   auth: ResponseAuth
   fetchTransactions: (query?: string) => Promise<void>
-  createTransaction: (data: CreateTransactionInput) => Promise<void>
-  createPix: (data: CreatePixInput) => Promise<void>
-  withdraw: (data: WithdralInput) => Promise<void>
+  createTransaction: (data: CreateTransactionInput) => Promise<AxiosError>
+  createPix: (data: CreatePixInput) => Promise<AxiosError>
+  withdraw: (data: WithdralInput) => Promise<AxiosError>
   getSaldo: () => Promise<void>
-  createUser: (data: CreateUserInput) => Promise<void>
-  login: (data: LoginInput) => Promise<void>
+  createUser: (data: CreateUserInput) => Promise<Cliente | undefined>
+  login: (data: LoginInput) => Promise<AxiosError | undefined>
+  createPixKey: (data: CreatePixKeyInput) => Promise<void>
 }
 
 interface TransactionProviderProps {
@@ -182,21 +187,26 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
     async (data: CreateTransactionInput) => {
       const { tpMov, value, numeroConta, inOutFlag, agencia } = data
       
-      const response = await api.post('transactions/ted', {
-        numeroConta,
-        inOutFlag,
-        tpMov,
-        value,
-        agencia
-      }, {
-        auth: {
-          username: JSON.parse(localStorage.getItem("auth")!).name,
-          password: JSON.parse(localStorage.getItem("auth")!).credentials
-        }
-      })
-
-      fetchTransactions()
-      getSaldo()
+      try {
+        await api.post('transactions/ted', {
+          numeroConta,
+          inOutFlag,
+          tpMov,
+          value,
+          agencia
+        }, {
+          auth: {
+            username: JSON.parse(localStorage.getItem("auth")!).name,
+            password: JSON.parse(localStorage.getItem("auth")!).credentials
+          }
+        })
+  
+        fetchTransactions()
+        getSaldo()
+      } catch (error: any) {
+        return error
+      }
+      
     },
     [],
   )
@@ -215,9 +225,11 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
         rg
       })
 
+      const cliente : Cliente = response.data
+
+      return cliente
     },
     [],
-
   )
 
   const withdraw = useCallback(
@@ -225,18 +237,47 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
       const { value } = data
       const tpMov = "Saque"
 
-      const response = await api.post('transactions/withdraw', {
-        value,
-        tpMov
-      }, {
-        auth: {
-          username: JSON.parse(localStorage.getItem("auth")!).name,
-          password: JSON.parse(localStorage.getItem("auth")!).credentials
-        }
-      })
+      try {
+        await api.post('transactions/withdraw', {
+          value,
+          tpMov
+        }, {
+          auth: {
+            username: JSON.parse(localStorage.getItem("auth")!).name,
+            password: JSON.parse(localStorage.getItem("auth")!).credentials
+          }
+        })
+  
+        
+        fetchTransactions()
+        getSaldo()
+      } catch (error: any) {
+        return error
+      }
+      
+    },
+    [],
+  )
 
-      fetchTransactions()
-      getSaldo()
+  const createPixKey = useCallback(
+    async (data: CreatePixKeyInput) => {
+      const { chavePix } = data
+
+      try {
+        await api.post('cliente/createPixKey', {
+          chavePix
+        }, {
+          auth: {
+            username: JSON.parse(localStorage.getItem("auth")!).name,
+            password: JSON.parse(localStorage.getItem("auth")!).credentials
+          }
+        })
+  
+       
+      } catch (error: any) {
+        return error
+      }
+      
     },
     [],
   )
@@ -245,21 +286,26 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
     async (data: CreatePixInput) => {
       const { chavePix, value,tpMov, inOutFlag } = data
 
-      const response = await api.post('transactions/pix', {
-        chavePix,
-        value,
-        tpMov,
-        inOutFlag
-    
-      }, {
-        auth: {
-          username: JSON.parse(localStorage.getItem("auth")!).name,
-          password: JSON.parse(localStorage.getItem("auth")!).credentials
-        }
-      })
-
-      fetchTransactions()
-      getSaldo()
+      try {
+        await api.post('transactions/pix', {
+          chavePix,
+          value,
+          tpMov,
+          inOutFlag
+      
+        }, {
+          auth: {
+            username: JSON.parse(localStorage.getItem("auth")!).name,
+            password: JSON.parse(localStorage.getItem("auth")!).credentials
+          }
+        })
+  
+        fetchTransactions()
+        getSaldo()
+      } catch (error: any) {
+        return error
+      }
+      
     },
     [],
   )
@@ -287,47 +333,51 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
     async (data: LoginInput) => {
       const { numeroConta, password, agencia } = data
 
-      const response = await api.post('/login', {
-        numeroConta,
-        password,
-        agencia
-    
-      }).catch(function (error) {
-        console.log(error.response)
-        alert("Algo deu errado")
-      })
-
-
+      try {
+        const response = await api.post('/login', {
+          numeroConta,
+          password,
+          agencia
+      
+        })
+  
+  
         localStorage.setItem('auth', JSON.stringify(response?.data.authentication))
-        localStorage.setItem('cliente', JSON.stringify(response?.data.authentication))
-
-
+        localStorage.setItem('cliente', JSON.stringify(response?.data.cliente))
+  
+  
         setCliente({
-            chavePix: response?.data.cliente.chavePix,
-            cpf: response?.data.cliente.cpf,
-            dtNascimento: response?.data.cliente.dtNascimento,
-            email: response?.data.cliente.email,
-            id: response?.data.cliente.id,
-            nome: response?.data.cliente.nome,
-            numeroConta: response?.data.cliente.numeroConta,
-            password: response?.data.cliente.password,
-            rg: response?.data.cliente.rg,
-            telefone: response?.data.cliente.telefone
-        
+              chavePix: response?.data.cliente.chavePix,
+              cpf: response?.data.cliente.cpf,
+              dtNascimento: response?.data.cliente.dtNascimento,
+              email: response?.data.cliente.email,
+              id: response?.data.cliente.id,
+              nome: response?.data.cliente.nome,
+              numeroConta: response?.data.cliente.numeroConta,
+              password: response?.data.cliente.password,
+              rg: response?.data.cliente.rg,
+              telefone: response?.data.cliente.telefone
+          
         })
-
+  
         setAuth({
-          authenticated: response?.data.authentication.authenticated,
-          authorities: response?.data.authentication.authorities,
-          credentials: response?.data.authentication.credentials,
-          name: response?.data.authentication.name,
-          principal: response?.data.authentication.principal
+            authenticated: response?.data.authentication.authenticated,
+            authorities: response?.data.authentication.authorities,
+            credentials: response?.data.authentication.credentials,
+            name: response?.data.authentication.name,
+            principal: response?.data.authentication.principal
         })
-
-
+  
+  
         fetchTransactionsAtLogin()
         getSaldoAtLogin()
         
+        return response.data
+      } catch (error: any) {
+        return error
+      }
+
+      
       
     },
     [],
@@ -346,6 +396,7 @@ export function TransactionsProvider({ children }: TransactionProviderProps) {
         createTransaction,
         createUser,
         createPix,
+        createPixKey,
         withdraw,
         saldo,
         getSaldo,

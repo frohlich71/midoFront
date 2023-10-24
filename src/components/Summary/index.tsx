@@ -15,7 +15,6 @@ export function Summary() {
       return context.saldo
     },
   )
-  console.log(saldo)
   return (
     <SummaryContainer>
       <SummaryCard>

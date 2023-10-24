@@ -12,6 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import { TransactionContext } from '../../contexts/TransactionContext'
 import { useContextSelector } from 'use-context-selector'
+import { Dispatch, SetStateAction } from 'react'
 
 const newClienteFormSchema = z.object({
   nome: z.string(),
@@ -26,7 +27,7 @@ const newClienteFormSchema = z.object({
 
 type NewClienteFormInputs = z.infer<typeof newClienteFormSchema>
 
-export function CadastroModal() {
+export function CadastroModal({ setIsCadastroOpen }: { setIsCadastroOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
   const createUser = useContextSelector(
     TransactionContext,
     (context) => {
@@ -48,7 +49,7 @@ export function CadastroModal() {
   async function handleCreateNewCliente(data: NewClienteFormInputs) {
     const { nome, cpf, email, dtNascimento, telefone, password, rg } = data
 
-    await createUser({
+   const user = await createUser({
       nome,
       cpf,
       email,
@@ -58,10 +59,9 @@ export function CadastroModal() {
       password,
       rg
     })
-
-
-    alert("Cliente criado com sucesso.")
-    close()
+   
+    setIsCadastroOpen(false)
+    window.alert("O numero da sua conta é: " + user?.numeroConta)
   }
 
   return (
@@ -70,7 +70,7 @@ export function CadastroModal() {
       <Content>
         <Dialog.Title>Cadastro</Dialog.Title>
 
-        <CloseButton>
+        <CloseButton onClick={() => setIsCadastroOpen(false)}>
           <X size={24} />
         </CloseButton>
 

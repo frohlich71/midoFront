@@ -33,6 +33,40 @@ export const NewTransactionButton = styled.button`
   }
 `
 
+export const CriarPixButton = styled.button`
+  height: 50px;
+  border: 0;
+  background: ${(props) => props.theme['green-500']};
+  color: ${(props) => props.theme.white};
+  font-weight: bold;
+  padding: 0 1.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+
+  margin-left: 29rem;
+  &:hover {
+    background: ${(props) => props.theme['green-700']};
+    transition: background-color 0.2s;
+  }
+`
+
+export const LogoutButton = styled.button`
+  height: 50px;
+  border: 0;
+  background: ${(props) => props.theme['green-500']};
+  color: ${(props) => props.theme.white};
+  font-weight: bold;
+  padding: 0 1.25rem;
+  border-radius: 6px;
+  
+  cursor: pointer;
+
+  &:hover {
+    background: ${(props) => props.theme['green-700']};
+    transition: background-color 0.2s;
+  }
+`
+
 export const ButtonsContainer = styled.div`
   
   button {

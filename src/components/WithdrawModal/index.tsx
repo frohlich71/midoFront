@@ -19,7 +19,7 @@ const newTransactionFormSchema = z.object({
 
 type WithdrawInput = z.infer<typeof newTransactionFormSchema>
 
-export function WithdralModal() {
+export function WithdralModal({ setIsSaqueOpen }: { setIsSaqueOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
   const withdraw = useContextSelector(
     TransactionContext,
     (context) => {
@@ -39,11 +39,17 @@ export function WithdralModal() {
   async function handleCreateNewTransaction(data: WithdrawInput) {
     const { value } = data
 
-    await withdraw({
+    const response = await withdraw({
       value
     })
+    
+    if (response.response?.status === 400) {
+      window.alert(response.response?.data)
+    } else {
+      setIsSaqueOpen(false)
+      window.alert("Saque efetuado com sucesso.")
+    }
 
-    reset()
   }
 
   return (
@@ -52,7 +58,7 @@ export function WithdralModal() {
       <Content>
         <Dialog.Title>Novo Saque</Dialog.Title>
 
-        <CloseButton>
+        <CloseButton onClick={() => setIsSaqueOpen(false)}>
           <X size={24} />
         </CloseButton>
 

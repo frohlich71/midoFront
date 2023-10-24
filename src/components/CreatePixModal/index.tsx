@@ -14,70 +14,54 @@ import { TransactionContext } from '../../contexts/TransactionContext'
 import { useContextSelector } from 'use-context-selector'
 
 const newTransactionFormSchema = z.object({
-  chavePix: z.string(),
-  value: z.number()
+  chavePix: z.string()
 })
 
-type CreatePixInput = z.infer<typeof newTransactionFormSchema>
+type CreatePixKeyInput = z.infer<typeof newTransactionFormSchema>
 
-export function PixModal({ setIsPixOpen }: { setIsPixOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
-  const createPix = useContextSelector(
+export function CreatePixModal({ setIsCreatePixOpen }: { setIsCreatePixOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
+  const createPixKey = useContextSelector(
     TransactionContext,
     (context) => {
-      return context.createPix
+      return context.createPixKey
     },
   )
   const {
     register,
     handleSubmit,
+    control,
     formState: { isSubmitting },
     reset,
-  } = useForm<CreatePixInput>({
+  } = useForm<CreatePixKeyInput>({
     resolver: zodResolver(newTransactionFormSchema)
   })
 
-  async function handleCreateNewTransaction(data: CreatePixInput) {
-    const { chavePix, value } = data
-
-    const response = await createPix({
-      chavePix,
-      value,
-      tpMov: 'Envio de PIX',
-      inOutFlag: 'outcome'
-    })
-
-    if (response.response?.status === 400) {
-      window.alert(response.response?.data)
-    } else {
-      setIsPixOpen(false)
-      window.alert("Transação efetuada com sucesso.")
-    }
-
+  async function handleCreateNewPix(data: CreatePixKeyInput) {
+    const { chavePix } = data
     
+    await createPixKey({
+      chavePix
+    })
+    setIsCreatePixOpen(false)
+    window.alert("Pix criado com sucesso.")
   }
 
   return (
     <Dialog.Portal>
       <Overlay />
       <Content>
-        <Dialog.Title>Novo PIX</Dialog.Title>
+        <Dialog.Title>Nova chave pix</Dialog.Title>
 
-        <CloseButton onClick={() => setIsPixOpen(false)}>
+        <CloseButton onClick={() => setIsCreatePixOpen(false)}>
           <X size={24} />
         </CloseButton>
 
-        <form onSubmit={handleSubmit(handleCreateNewTransaction)}>
+        <form onSubmit={handleSubmit(handleCreateNewPix)}>
           <input
             type="text"
-            placeholder="Chave PIX"
+            placeholder="Chave pix"
             required
             {...register('chavePix')}
-          />
-          <input
-            type="number"
-            placeholder="Valor"
-            required
-            {...register('value', { valueAsNumber: true })}
           />
 
           <button type="submit" disabled={isSubmitting}>

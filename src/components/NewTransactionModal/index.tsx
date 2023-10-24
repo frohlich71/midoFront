@@ -21,7 +21,7 @@ const newTransactionFormSchema = z.object({
 
 type NewTransactionFormInputs = z.infer<typeof newTransactionFormSchema>
 
-export function NewTransactionModal() {
+export function NewTransactionModal({ setIsTedOpen }: { setIsTedOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
   const createTransaction = useContextSelector(
     TransactionContext,
     (context) => {
@@ -43,7 +43,7 @@ export function NewTransactionModal() {
   async function handleCreateNewTransaction(data: NewTransactionFormInputs) {
     const { numeroConta, value } = data
 
-    await createTransaction({
+    const response = await createTransaction({
       numeroConta,
       inOutFlag: 'outcome',
       tpMov: 'Envio de TED',
@@ -51,7 +51,13 @@ export function NewTransactionModal() {
       agencia: '001'
     })
 
-    reset()
+    if (response.response?.status === 400) {
+      window.alert(response.response?.data)
+    } else {
+      setIsTedOpen(false)
+      window.alert("Transação efetuada com sucesso.")
+    }
+
   }
 
   return (
@@ -60,7 +66,7 @@ export function NewTransactionModal() {
       <Content>
         <Dialog.Title>Novo TED</Dialog.Title>
 
-        <CloseButton>
+        <CloseButton onClick={() => setIsTedOpen(false)}>
           <X size={24} />
         </CloseButton>
 

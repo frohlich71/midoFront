@@ -4,15 +4,19 @@ import { useContextSelector } from "use-context-selector"
 import { Body, NewTransactionButton } from './styles';
 import { CadastroModal } from '../../components/CadastroModal';
 import { LoginModal } from '../../components/LoginModal';
+import { boolean } from 'zod';
+import { useState } from 'react';
 
 export function Cadastro () {
+  const [isCadastroOpen, setIsCadastroOpen] = useState<boolean>(false)
+
   return (
   <Body>
-          <Dialog.Root>
+          <Dialog.Root open={isCadastroOpen}>
             <Dialog.Trigger asChild>
-              <NewTransactionButton>CADASTRO</NewTransactionButton>
+              <NewTransactionButton onClick={() => setIsCadastroOpen(!isCadastroOpen)}>CADASTRO</NewTransactionButton>
             </Dialog.Trigger>
-            <CadastroModal />
+            <CadastroModal setIsCadastroOpen={setIsCadastroOpen}/>
           </Dialog.Root>
           <Dialog.Root>
             <Dialog.Trigger asChild>
