@@ -39,11 +39,18 @@ export function CreatePixModal({ setIsCreatePixOpen }: { setIsCreatePixOpen: Rea
   async function handleCreateNewPix(data: CreatePixKeyInput) {
     const { chavePix } = data
     
-    await createPixKey({
+    const response = await createPixKey({
       chavePix
     })
-    setIsCreatePixOpen(false)
-    window.alert("Pix criado com sucesso.")
+
+    if (response.response?.status === 400) {
+      window.alert(response.response?.data)
+    } else {
+      setIsCreatePixOpen(false)
+      window.alert("Pix criado com sucesso.")
+    }
+
+    
   }
 
   return (

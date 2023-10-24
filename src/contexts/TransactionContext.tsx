@@ -97,7 +97,7 @@ interface TransactionContextType {
   getSaldo: () => Promise<void>
   createUser: (data: CreateUserInput) => Promise<Cliente | undefined>
   login: (data: LoginInput) => Promise<AxiosError | undefined>
-  createPixKey: (data: CreatePixKeyInput) => Promise<void>
+  createPixKey: (data: CreatePixKeyInput) => Promise<AxiosError>
 }
 
 interface TransactionProviderProps {
