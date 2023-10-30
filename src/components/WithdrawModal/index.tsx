@@ -43,7 +43,7 @@ export function WithdralModal({ setIsSaqueOpen }: { setIsSaqueOpen: React.Dispat
       value
     })
     
-    if (response.response?.status === 400) {
+    if (response.response?.status !== 200) {
       window.alert(response.response?.data)
     } else {
       setIsSaqueOpen(false)

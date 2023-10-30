@@ -51,15 +51,14 @@ export function NewTransactionModal({ setIsTedOpen }: { setIsTedOpen: React.Disp
       agencia: '001'
     })
 
-    if (response.response?.status === 400) {
-      window.alert("Cliente não encontrado.")
-    } else if (response.response?.status === 200) {
+    console.log(response)
+
+    if (response.response?.status !== 200) {
+      window.alert(response.response?.data)
+    } else {
       setIsTedOpen(false)
       window.alert("Transação efetuada com sucesso.")
-    } else {
-      window.alert(response.response?.data)
-    }
-
+    } 
   }
 
   return (

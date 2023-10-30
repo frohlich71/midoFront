@@ -43,7 +43,7 @@ export function CreatePixModal({ setIsCreatePixOpen }: { setIsCreatePixOpen: Rea
       chavePix
     })
 
-    if (response.response?.status === 400) {
+    if (response.response?.status !== 200) {
       window.alert(response.response?.data)
     } else {
       setIsCreatePixOpen(false)

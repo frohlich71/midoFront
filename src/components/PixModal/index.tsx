@@ -46,13 +46,11 @@ export function PixModal({ setIsPixOpen }: { setIsPixOpen: React.Dispatch<React.
       inOutFlag: 'outcome'
     })
 
-    if (response.response?.status === 400) {
-      window.alert("A chave que está tentando enviar não existe.")
-    } else if (response.response?.status === 200) {
+    if (response.response?.status !== 200) {
+      window.alert(response.response?.data)
+    } else {
       setIsPixOpen(false)
       window.alert("Transação efetuada com sucesso.")
-    } else {
-      window.alert(response.response?.data)
     }
 
     
